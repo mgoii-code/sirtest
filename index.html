@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>差不多先生傳：精準大考驗</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #f4ecd8; /* 復古紙張背景色 */
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            color: #3e332a;
+            user-select: none;
+        }
+        .paper-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1), 0 5px 10px rgba(0,0,0,0.05);
+        }
+        .btn-retro {
+            transition: all 0.2s ease;
+            box-shadow: 3px 3px 0px #3e332a;
+        }
+        .btn-retro:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px #3e332a;
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="game-container" class="max-w-3xl w-full bg-[#fdfaf1] rounded-lg p-6 sm:p-10 paper-shadow border-2 border-[#8c7b68] relative overflow-hidden">
+        
+        <!-- Header -->
+        <div class="text-center mb-8 border-b-2 border-[#8c7b68] pb-6">
+            <h1 class="text-3xl sm:text-5xl font-bold tracking-widest text-[#5e4b3c] mb-2">差不多先生傳</h1>
+            <p class="text-sm sm:text-base mt-2 text-[#7a6b5d] font-bold">—— 打破「差不多」魔咒的精準考驗 ——</p>
+        </div>
+
+        <!-- Dynamic Game Content Area -->
+        <div id="game-content" class="min-h-[350px] flex flex-col justify-center items-center fade-in">
+            <!-- Content will be injected by JS -->
+        </div>
+
+        <!-- Message Box for Feedback -->
+        <div id="message-box" class="mt-8 p-4 bg-[#f4ecd8] border-l-4 border-[#8c7b68] hidden opacity-0 transition-opacity duration-300 rounded shadow-sm">
+            <p id="message-text" class="text-lg font-bold text-center"></p>
+        </div>
+
+    </div>
+
+    <script>
+        const gameContent = document.getElementById('game-content');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        
+        let currentLevel = 0;
+        let timer = null;
+        let currentMinutes = 27;
+
+        const levels = [
+            {
+                id: 'intro',
+                render: () => `
+                    <h2 class="text-2xl font-bold mb-4 text-[#8c7b68]">序章：認識差不多先生</h2>
+                    <p class="text-lg leading-relaxed mb-8 text-justify text-gray-700">
+                        你知道中國最有名的人是誰？提起此人，人人皆曉，處處聞名。他姓差，名不多。<br><br>
+                        他常說：「凡事只要差不多，就好了。何必太精明呢？」<br>
+                        今天，你將進入他的生活。如果你跟著他一起「差不多」，結局將會是一場悲劇。請發揮你的火眼金睛，幫他在關鍵時刻做出<strong class="text-red-700 font-bold">絕對精準</strong>的選擇！
+                    </p>
+                    <button onclick="nextLevel()" class="btn-retro bg-[#8c7b68] text-[#fdfaf1] px-10 py-4 rounded text-xl font-bold hover:bg-[#5e4b3c]">接受考驗</button>
+                `
+            },
+            {
+                id: 'level1',
+                title: '第一關：買糖之謎',
+                desc: '差不多先生小時候，他媽叫他去買紅糖。他說：「紅糖白糖不是差不多嗎？」<br>為了避免他挨罵，請在下列糖包中，幫他選出唯一的<strong class="text-red-700">「紅糖」</strong>。',
+                render: () => {
+                    let html = `<h2 class="text-2xl font-bold mb-4 text-center text-[#8c7b68]">${levels[1].title}</h2><p class="mb-6 text-center text-gray-700">${levels[1].desc}</p><div class="grid grid-cols-4 sm:grid-cols-5 gap-4 w-full">`;
+                    const totalBags = 20;
+                    const redSugarIndex = Math.floor(Math.random() * totalBags);
+                    
+                    for(let i=0; i<totalBags; i++) {
+                        const isRed = i === redSugarIndex;
+                        const label = isRed ? '紅糖' : '白糖';
+                        const bgClass = isRed ? 'bg-[#f4efe9]' : 'bg-white'; 
+                        const textClass = isRed ? 'text-red-800' : 'text-gray-400';
+                        
+                        html += `
+                            <button onclick="checkAnswer(${isRed})" class="${bgClass} border-2 border-[#c2a88d] rounded-lg p-4 flex flex-col items-center justify-center hover:bg-yellow-50 transition cursor-pointer">
+                                <span class="text-4xl mb-2">🥡</span>
+                                <span class="text-sm font-bold ${textClass}">${label}</span>
+                            </button>
+                        `;
+                    }
+                    html += `</div>`;
+                    return html;
+                }
+            },
+            {
+                id: 'level2',
+                title: '第二關：記帳之亂',
+                desc: '他在錢舖裡做夥計，常常寫錯字。掌櫃的生氣了，他說：「千字比十字只多一小撇，不是差不多嗎？」<br>請在茫茫字海中，找出唯一的<strong class="text-red-700">「千」</strong>字。',
+                render: () => {
+                    let html = `<h2 class="text-2xl font-bold mb-4 text-center text-[#8c7b68]">${levels[2].title}</h2><p class="mb-6 text-center text-gray-700">${levels[2].desc}</p><div class="grid grid-cols-6 sm:grid-cols-8 gap-2 sm:gap-4 bg-white p-6 rounded-lg border-2 border-[#c2a88d] w-full">`;
+                    const totalChars = 48;
+                    const qianIndex = Math.floor(Math.random() * totalChars);
+                    
+                    for(let i=0; i<totalChars; i++) {
+                        const isQian = i === qianIndex;
+                        const char = isQian ? '千' : (Math.random() > 0.8 ? '干' : (Math.random() > 0.5 ? '于' : '十'));
+                        html += `
+                            <button onclick="checkAnswer(${char === '千'})" class="text-2xl sm:text-3xl font-bold text-gray-800 hover:text-red-600 hover:bg-gray-100 rounded p-2 transition cursor-pointer select-none">
+                                ${char}
+                            </button>
+                        `;
+                    }
+                    html += `</div>`;
+                    return html;
+                }
+            },
+            {
+                id: 'level3',
+                title: '第三關：火車不等人',
+                desc: '有一天，他要搭 <strong class="text-red-700">8:30</strong> 的火車。請緊盯時鐘，在<strong>精準的 8:30</strong> 點擊上車！<br>早一分晚一分都不行！',
+                render: () => {
+                    setTimeout(() => startClock(), 100);
+                    return `
+                        <h2 class="text-2xl font-bold mb-4 text-center text-[#8c7b68]">${levels[3].title}</h2>
+                        <p class="mb-8 text-center text-gray-700">${levels[3].desc}</p>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="text-7xl font-mono bg-black text-green-400 p-6 rounded-lg mb-10 shadow-inner border-4 border-gray-700" id="digital-clock">08:27</div>
+                            <button onclick="attemptBoarding()" class="btn-retro bg-red-700 text-white px-12 py-5 rounded-full text-3xl font-bold hover:bg-red-800 tracking-wider">
+                                🚂 立即上車！
+                            </button>
+                        </div>
+                    `;
+                }
+            },
+            {
+                id: 'level4',
+                title: '第四關：生死交關',
+                desc: '差不多先生忽然得了一場急病。家人急忙跑去東街請王大夫，卻在情急之下拿錯了名片。<br>差不多先生心想：「王大夫同汪大夫，也差不多啦...」<br><strong class="text-red-700">這是攸關性命的最後選擇，請選出正確的名片（人醫）！</strong>',
+                render: () => {
+                    // Randomize card order
+                    const isWangFirst = Math.random() > 0.5;
+                    
+                    const wangCard = `
+                        <button onclick="checkAnswer(true)" class="btn-retro bg-white p-8 border-2 border-gray-400 rounded-lg w-full flex flex-col items-center hover:bg-blue-50 text-black cursor-pointer">
+                            <h3 class="text-4xl font-bold mb-3 tracking-widest">王大夫</h3>
+                            <p class="text-lg text-gray-500 mb-6">東街專科</p>
+                            <div class="border-t-2 border-gray-200 pt-4 w-full text-center text-base font-bold text-blue-800">專治：人類各種內外急症</div>
+                        </button>
+                    `;
+                    
+                    const dogCard = `
+                        <button onclick="checkAnswer(false)" class="btn-retro bg-white p-8 border-2 border-gray-400 rounded-lg w-full flex flex-col items-center hover:bg-red-50 text-black cursor-pointer">
+                            <h3 class="text-4xl font-bold mb-3 tracking-widest">汪大夫</h3>
+                            <p class="text-lg text-gray-500 mb-6">西街專科</p>
+                            <div class="border-t-2 border-gray-200 pt-4 w-full text-center text-base font-bold text-red-800">專治：牛馬羊各種奇難雜症</div>
+                        </button>
+                    `;
+
+                    return `
+                        <h2 class="text-2xl font-bold mb-4 text-center text-red-800">${levels[4].title}</h2>
+                        <p class="mb-8 text-center text-gray-700">${levels[4].desc}</p>
+                        <div class="flex flex-col sm:flex-row gap-6 w-full justify-center px-4">
+                            ${isWangFirst ? wangCard + dogCard : dogCard + wangCard}
+                        </div>
+                    `;
+                }
+            }
+        ];
+
+        function startClock() {
+            const clockEl = document.getElementById('digital-clock');
+            if(!clockEl) return;
+            currentMinutes = 27;
+            
+            clearInterval(timer);
+            timer = setInterval(() => {
+                currentMinutes++;
+                let displayMin = currentMinutes < 10 ? '0'+currentMinutes : currentMinutes;
+                clockEl.innerText = `08:${displayMin}`;
+                
+                if (currentMinutes > 32) {
+                    clearInterval(timer);
+                    showGameOver("火車早就開走了！差不多先生搖搖頭道：「今天走同明天走，也還差不多。可是火車公司未免太認真了。」");
+                }
+            }, 1200); // 1.2 seconds real time = 1 minute game time
+        }
+
+        function attemptBoarding() {
+            clearInterval(timer);
+            if (currentMinutes === 30) {
+                showMessage("精準抵達！你成功搭上了火車，打破了遲到兩分鐘的宿命！", true);
+                setTimeout(nextLevel, 2500);
+            } else if (currentMinutes < 30) {
+                showGameOver(`現在才 08:${currentMinutes}，火車還沒來啊！你心急跳下月台跌斷了腿...`);
+            } else {
+                showGameOver(`現在已經 08:${currentMinutes} 了，遲了 ${currentMinutes-30} 分鐘！<br>差不多先生說：「8:32同8:30不是差不多嗎？」`);
+            }
+        }
+
+        function renderCurrentLevel() {
+            hideMessage();
+            if (currentLevel < levels.length) {
+                const levelHtml = levels[currentLevel].render();
+                gameContent.innerHTML = levelHtml;
+                gameContent.classList.remove('fade-in');
+                void gameContent.offsetWidth; // trigger reflow
+                gameContent.classList.add('fade-in');
+            } else {
+                showVictory();
+            }
+        }
+
+        function checkAnswer(isCorrect) {
+            if (isCorrect) {
+                if (currentLevel === 1) {
+                    showMessage("精準！你成功買對了紅糖，媽媽很欣慰。", true);
+                } else if (currentLevel === 2) {
+                    showMessage("好眼力！掌櫃的對你的精確度讚不絕口。", true);
+                } else if (currentLevel === 4) {
+                    showMessage("太棒了！王大夫及時趕到，治好了差不多先生的急病！", true);
+                }
+                setTimeout(nextLevel, 2500);
+            } else {
+                let failMsg = "差不多先生說：「差不多啦～」";
+                if (currentLevel === 1) failMsg = "差不多先生說：「紅糖白糖不是差不多嗎？」結果菜都變難吃了，媽媽氣炸了！";
+                if (currentLevel === 2) failMsg = "差不多先生說：「千字比十字只多一小撇，不是差不多嗎？」結果帳目大亂，你被開除了...";
+                if (currentLevel === 4) failMsg = "牛醫汪大夫走近床前，用醫牛的法子給差不多先生治病。<br>不上點鐘，差不多先生就一命嗚呼了。";
+                showGameOver(failMsg);
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            renderCurrentLevel();
+        }
+
+        function showMessage(text, isSuccess) {
+            messageText.innerHTML = text;
+            messageBox.className = `mt-8 p-5 border-l-8 block transition-opacity duration-300 rounded shadow-md ${isSuccess ? 'bg-green-100 border-green-600 text-green-800' : 'bg-red-100 border-red-600 text-red-800'}`;
+            
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-0');
+                messageBox.classList.add('opacity-100');
+            }, 10);
+        }
+
+        function hideMessage() {
+            messageBox.classList.remove('opacity-100');
+            messageBox.classList.add('opacity-0');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+                messageBox.classList.remove('block');
+            }, 300);
+        }
+
+        function showGameOver(reason) {
+            clearInterval(timer);
+            gameContent.classList.add('shake');
+            setTimeout(() => gameContent.classList.remove('shake'), 500);
+            
+            gameContent.innerHTML = `
+                <div class="text-center w-full">
+                    <h2 class="text-4xl font-bold text-red-700 mb-6">挑戰失敗</h2>
+                    <p class="text-xl mb-8 leading-relaxed font-bold">${reason}</p>
+                    <div class="bg-gray-100 p-6 rounded-lg mb-8 border border-gray-300">
+                        <p class="text-gray-600 italic">「他死後，大家都稱讚他樣樣事情看得破，想得通。<br>於是大家給他取個死後的法號，叫他做<strong>圓通大師</strong>...」</p>
+                    </div>
+                    <button onclick="restartGame()" class="btn-retro bg-[#5e4b3c] text-white px-10 py-4 rounded text-xl hover:bg-black font-bold">重新來過，拒絕差不多</button>
+                </div>
+            `;
+        }
+
+        function showVictory() {
+            gameContent.innerHTML = `
+                <div class="text-center w-full">
+                    <h2 class="text-5xl font-bold text-green-700 mb-6">改寫歷史！</h2>
+                    <p class="text-xl mb-8 leading-relaxed font-bold text-gray-800">
+                        恭喜你！在你的幫助下，差不多先生學會了「精準」與「認真」。<br><br>
+                        他沒有死於牛醫之手，反而成了一個精明幹練的人。<br>
+                        中國從此少了一個「圓通大師」，多了一個實事求是的科學家！
+                    </p>
+                    <div class="text-7xl mb-10 drop-shadow-md">🎓✨🎉</div>
+                    <button onclick="restartGame()" class="btn-retro bg-[#8c7b68] text-white px-10 py-4 rounded text-xl hover:bg-[#5e4b3c] font-bold">再玩一次</button>
+                </div>
+            `;
+        }
+
+        function restartGame() {
+            currentLevel = 0;
+            renderCurrentLevel();
+        }
+
+        // Initialize the game
+        renderCurrentLevel();
+
+    </script>
+</body>
+</html>
